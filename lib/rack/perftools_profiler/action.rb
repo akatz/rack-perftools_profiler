@@ -15,6 +15,10 @@ module Rack::PerftoolsProfiler
     end
 
     def self.for_env(env, profiler, middleware)
+      if env["QUERY_STRING"] =~ /%3D/
+        require 'cgi'
+        env["QUERY_STRING"] = CGI::unescape(env["QUERY_STRING"])
+      end
       request = Rack::Request.new(env)
       password = request.GET['profile']
       accepted = profiler.accepts?(password)
