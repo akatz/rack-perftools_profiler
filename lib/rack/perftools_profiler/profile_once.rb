@@ -48,7 +48,11 @@ module Rack::PerftoolsProfiler
       new_env.delete('rack.request.query_string')
       new_env.delete('rack.request.query_hash')
 
-      new_env['QUERY_STRING'] = build_query(get_params)
+      if get_params.values.map {|x| x.class}.include?(Hash)
+        new_env['QUERY_STRING'] = build_nested_query(get_params)
+      else
+        new_env['QUERY_STRING'] = build_query(get_params)
+      end
       new_env
     end
 

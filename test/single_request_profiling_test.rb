@@ -304,6 +304,19 @@ class SingleRequestProfilingTest < Test::Unit::TestCase
     # Devise/Warden.
     # assert_equal env, old_env
   end
+  should 'send Rack environment to underlying application (minus special profiling GET params) with urlencoded nested params' do
+    env = Rack::MockRequest.env_for('/', :params => 'profile=true&utf8=%E2%9C%93&search%5Bq%5D=router&search%5Bcat%5D=')
+    old_env = env.clone
+    expected_env = env.clone
+    expected_env["QUERY_STRING"] = 'utf8=%E2%9C%93&search[q]=router&search[cat]='
+    app = @app.clone
+    request = Rack::Request.new(expected_env)
+    app.expects(:call).with(expected_env)
+    Rack::PerftoolsProfiler.new(app, :default_printer => 'gif').call(env)
+    # I used to clone the environment to avoid conflicts, but this seems to break
+    # Devise/Warden.
+    # assert_equal env, old_env
+  end
   
 
   context "when request is not GET" do
